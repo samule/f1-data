@@ -1,11 +1,14 @@
 // Jolpica (Ergast-compatible) API: calendar and results. No API key.
-// Jolpica asks clients to identify themselves; browsers forbid setting
-// User-Agent, so we send a custom header instead (harmless if ignored).
+// Do NOT send custom headers from the browser (e.g. X-Client): they force a
+// CORS preflight, and Jolpica's allow-headers list (accept, authorization,
+// content-type, user-agent, x-csrftoken, x-requested-with) rejects them, so
+// the request is blocked. Browsers also cannot set User-Agent. A plain GET
+// is a "simple" request and works. Identify the client only in server-side
+// tooling (e.g. Bruno).
 const BASE = 'https://api.jolpi.ca/ergast/f1'
-const HEADERS = { 'X-Client': 'f1-data-pit-board (unofficial fan project)' }
 
 async function getJson(path) {
-  const res = await fetch(`${BASE}${path}`, { headers: HEADERS })
+  const res = await fetch(`${BASE}${path}`)
   if (!res.ok) throw new Error(`Jolpica ${res.status} for ${path}`)
   return res.json()
 }

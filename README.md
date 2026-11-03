@@ -27,3 +27,7 @@ Published on GitHub Pages at https://samule.github.io/f1-data/ by `.github/workf
 One-time setup: repo **Settings > Pages > Build and deployment > Source = "GitHub Actions"** (not "Deploy from a branch", which serves the unbuilt source and shows a blank page).
 
 The Vite `base` is `/f1-data/`. For another host that serves from the root (Vercel, custom domain) build with `VITE_BASE=/ npm run build`.
+
+## Note on API headers
+
+Browsers cannot set `User-Agent`, and Jolpica's CORS config does not allow custom headers such as `X-Client`, so browser fetches to Jolpica must be plain GETs with no custom headers.
