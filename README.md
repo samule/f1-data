@@ -22,4 +22,8 @@ npm run build   # production build in dist/
 Open the `bruno/` folder in [Bruno](https://www.usebruno.com) to try every endpoint the app uses.
 
 ## Deploy
-Static Vite build: import the repo in Vercel (framework preset "Vite", output `dist`).
+Published on GitHub Pages at https://samule.github.io/f1-data/ by `.github/workflows/deploy.yml`: on every push to `main` it runs `npm ci`, `npm test` and `npm run build`, then publishes `dist/`.
+
+One-time setup: repo **Settings > Pages > Build and deployment > Source = "GitHub Actions"** (not "Deploy from a branch", which serves the unbuilt source and shows a blank page).
+
+The Vite `base` is `/f1-data/`. For another host that serves from the root (Vercel, custom domain) build with `VITE_BASE=/ npm run build`.
