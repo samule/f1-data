@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { fetchSeasonRaces, fetchRaceResults } from './api/jolpica.js'
-import { fetchRaceSessions, fetchDrivers, fetchStints, fetchPits } from './api/openf1.js'
+import { fetchRaceSessions, fetchDrivers, fetchStints, fetchPits, fetchLaps, fetchPositions } from './api/openf1.js'
+import { buildReplay } from './lib/replay.js'
+import Replay from './Replay.jsx'
 import { buildBoard, completedRaces, matchSession, COMPOUND_COLORS } from './lib/strategy.js'
 
 const THIS_YEAR = new Date().getFullYear()
@@ -29,9 +31,13 @@ export default function App() {
   const [round, setRound] = useState('')
   const [board, setBoard] = useState(null)
   const [status, setStatus] = useState('')
+  const [view, setView] = useState('replay')
+  const [replay, setReplay] = useState(null)
+  const [drivers, setDrivers] = useState([])
+  const [sessionKey, setSessionKey] = useState(null)
 
   useEffect(() => {
-    setRaces([]); setRound(''); setBoard(null); setStatus('Loading calendar…')
+    setRaces([]); setRound(''); setBoard(null); setReplay(null); setSessionKey(null); setStatus('Loading calendar…')
     fetchSeasonRaces(year)
       .then((r) => { setRaces(completedRaces(r)); setStatus('') })
       .catch((e) => setStatus(e.message))
@@ -40,27 +46,47 @@ export default function App() {
   useEffect(() => {
     if (!round) return
     const race = races.find((r) => r.round === round)
-    setBoard(null); setStatus('Loading race data…')
+    setBoard(null); setReplay(null); setSessionKey(null); setStatus('Loading race data…')
     ;(async () => {
       const sessions = await fetchRaceSessions(year)
       const session = matchSession(sessions, race.date)
       if (!session) throw new Error('No OpenF1 data for this race.')
-      const [drivers, stints, pits, results] = await Promise.all([
+      const [drv, stints, pits, results] = await Promise.all([
         fetchDrivers(session.session_key),
         fetchStints(session.session_key),
         fetchPits(session.session_key),
         fetchRaceResults(year, round).catch(() => []),
       ])
-      setBoard(buildBoard({ drivers, stints, pits, results }))
+      setDrivers(drv)
+      setSessionKey(session.session_key)
+      setBoard(buildBoard({ drivers: drv, stints, pits, results }))
       setStatus('')
     })().catch((e) => setStatus(e.message))
   }, [round, year, races])
+
+  // Replay data is heavier (every position change), so fetch it only when that view is open.
+  useEffect(() => {
+    if (view !== 'replay' || !sessionKey || replay) return
+    let cancelled = false
+    setStatus('Loading laps and positions…')
+    Promise.all([fetchLaps(sessionKey), fetchPositions(sessionKey)])
+      .then(([laps, positions]) => {
+        if (cancelled) return
+        setReplay(buildReplay({ drivers, laps, positions })); setStatus('')
+      })
+      .catch((e) => !cancelled && setStatus(e.message))
+    return () => { cancelled = true }
+  }, [view, sessionKey, replay, drivers])
 
   const legend = useMemo(() => Object.entries(COMPOUND_COLORS).filter(([k]) => k !== 'UNKNOWN'), [])
 
   return (
     <main>
-      <h1>F1 Pit &amp; Strategy Board</h1>
+      <h1>F1 Race Replay &amp; Pit Board</h1>
+      <div className="tabs">
+        <button className={view === 'replay' ? 'on' : ''} onClick={() => setView('replay')}>Race replay</button>
+        <button className={view === 'pits' ? 'on' : ''} onClick={() => setView('pits')}>Pit &amp; strategy</button>
+      </div>
       <div className="controls">
         <label>Season
           <select value={year} onChange={(e) => setYear(Number(e.target.value))}>
@@ -75,7 +101,8 @@ export default function App() {
         </label>
       </div>
       {status && <p className="status">{status}</p>}
-      {board && (
+      {view === 'replay' && replay && <Replay key={sessionKey} replay={replay} drivers={drivers} />}
+      {view === 'pits' && board && (
         <>
           <p className="legend">
             {legend.map(([k, c]) => <span key={k}><i style={{ background: c }} />{k}</span>)}

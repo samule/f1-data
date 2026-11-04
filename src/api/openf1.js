@@ -13,3 +13,6 @@ export const fetchRaceSessions = (year) =>
 export const fetchDrivers = (sessionKey) => getJson(`/drivers?session_key=${sessionKey}`)
 export const fetchStints = (sessionKey) => getJson(`/stints?session_key=${sessionKey}`)
 export const fetchPits = (sessionKey) => getJson(`/pit?session_key=${sessionKey}`)
+// Replay data: laps (per-lap start time + duration) and position changes (timestamped).
+export const fetchLaps = (sessionKey) => getJson(`/laps?session_key=${sessionKey}`)
+export const fetchPositions = (sessionKey) => getJson(`/position?session_key=${sessionKey}`)
