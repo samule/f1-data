@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { fetchSeasonRaces, fetchRaceResults } from './api/jolpica.js'
-import { fetchRaceSessions, fetchDrivers, fetchStints, fetchPits, fetchLaps, fetchPositions } from './api/openf1.js'
+import { fetchRaceSessions, fetchDrivers, fetchStints, fetchPits, fetchLaps, fetchPositions, onOpenF1Retry } from './api/openf1.js'
 import { buildReplay } from './lib/replay.js'
 import Replay from './Replay.jsx'
 import { buildBoard, completedRaces, matchSession, COMPOUND_COLORS } from './lib/strategy.js'
@@ -35,6 +35,12 @@ export default function App() {
   const [replay, setReplay] = useState(null)
   const [drivers, setDrivers] = useState([])
   const [sessionKey, setSessionKey] = useState(null)
+
+  useEffect(() => {
+    onOpenF1Retry(({ attempt, maxRetries, delayMs }) =>
+      setStatus(`OpenF1 is busy, retrying in ${Math.ceil(delayMs / 1000)}s (${attempt}/${maxRetries})…`))
+    return () => onOpenF1Retry(null)
+  }, [])
 
   useEffect(() => {
     setRaces([]); setRound(''); setBoard(null); setReplay(null); setSessionKey(null); setStatus('Loading calendar…')
