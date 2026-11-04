@@ -1,14 +1,16 @@
-# F1 Pit & Strategy Board
+# F1 Race Replay & Pit Board
 
-Pick a completed Grand Prix and see each driver's pit stops (lap, lane time, tyre fitted) and a tyre-strategy bar per stint.
+Pick a completed Grand Prix. **Race replay** shows lap-by-lap positions (chart + lap slider) and the gap to the leader at the end of each lap. **Pit & strategy** shows each driver's pit stops (lap, lane time, tyre fitted) and a tyre-strategy bar per stint.
 
 > **Unofficial fan project.** Not affiliated with, endorsed or sponsored by Formula 1, the FIA or any team. F1 and related marks belong to their owners. Non-commercial use only.
 
 ## Data (no API keys)
-- [OpenF1](https://openf1.org): sessions, drivers, stints (tyre compounds) and pit stops.
+- [OpenF1](https://openf1.org): sessions, drivers, laps, position changes, stints (tyre compounds) and pit stops.
 - [Jolpica](https://github.com/jolpica/jolpica-f1) (Ergast-compatible): season calendar and finishing order.
 
 Both are free public APIs; please be gentle with request volume. Coverage starts in 2023 (OpenF1).
+
+Gap to leader = difference between each car's end-of-lap time and the leader's, derived from `/laps` and `/position` (not the heavier `/intervals`), so it is approximate.
 
 ## Run
 ```bash
